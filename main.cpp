@@ -2,7 +2,6 @@
 #include <cstdio>
 #include <queue>
 #include <vector>
-#include <winsock.h>
 
 enum mfiContentType : uint8_t {
     MFI_CT_MELODY = 1,
@@ -127,14 +126,17 @@ public:
     uint32_t readUint32() {
         uint32_t data;
         read(&data, sizeof(uint32_t));
-        data = ntohl(data);
+        data = ((data >> 24) & 0xFF) |
+               ((data << 8) & 0xFF0000) |
+               ((data >> 8) & 0xFF00) |
+               ((data << 24) & 0xFF000000);
         return data;
     }
 
     uint16_t readUint16() {
         uint16_t data;
         read(&data, sizeof(uint16_t));
-        data = ntohs(data);
+        data = data >> 8 | data << 8;
         return data;
     }
 
@@ -177,12 +179,15 @@ public:
     }
 
     void writeUint32(uint32_t value) {
-        uint32_t data = htonl(value);
+        uint32_t data = ((value >> 24) & 0xFF) |
+                        ((value << 8) & 0xFF0000) |
+                        ((value >> 8) & 0xFF00) |
+                        ((value << 24) & 0xFF000000);
         write(&data, sizeof(uint32_t));
     }
 
     void writeUint16(uint16_t value) {
-        uint16_t data = htons(value);
+        uint16_t data = value >> 8 | value << 8;
         write(&data, sizeof(uint16_t));
     }
 
